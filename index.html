@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세무판례 분석 시스템</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#0c1f35;
+  --navy-2:#163554;
+  --navy-3:#1d4570;
+  --gold:#c8912a;
+  --gold-light:#e8b558;
+  --text-1:#111827;
+  --text-2:#374151;
+  --text-3:#6b7280;
+  --text-4:#9ca3af;
+  --bg-1:#ffffff;
+  --bg-2:#f8f9fb;
+  --bg-3:#f0f2f5;
+  --border-1:#e5e7eb;
+  --border-2:#d1d5db;
+  --border-3:#9ca3af;
+  --green:#166534;
+  --green-bg:#dcfce7;
+  --red:#991b1b;
+  --red-bg:#fee2e2;
+}
+
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg-3);color:var(--text-1);height:100vh;display:flex;flex-direction:column;font-size:14px;line-height:1.6}
+
+/* ─── HEADER ─── */
+header{
+  background:var(--navy);
+  height:54px;min-height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  position:relative;
+  z-index:10;
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-seal{
+  width:34px;height:34px;
+  background:var(--gold);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  flex-shrink:0;
+}
+.logo-text{display:flex;flex-direction:column;line-height:1.2}
+.logo-ko{font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.2px}
+.logo-en{font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:8px}
+.badge-demo{
+  padding:3px 10px;border-radius:20px;
+  background:rgba(200,145,42,0.2);
+  color:var(--gold-light);
+  font-size:10px;font-weight:600;
+  letter-spacing:0.3px;
+  border:1px solid rgba(200,145,42,0.3);
+}
+.badge-demo.hidden{display:none}
+.btn-header{
+  padding:6px 14px;border-radius:6px;cursor:pointer;
+  font-size:12px;font-family:inherit;font-weight:500;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.85);
+  transition:all 0.15s;
+  display:flex;align-items:center;gap:5px;
+}
+.btn-header:hover{background:rgba(255,255,255,0.16);color:#fff}
+
+/* ─── DEMO NOTICE ─── */
+.notice-bar{
+  background:#fffbeb;
+  border-bottom:1px solid #f59e0b;
+  padding:7px 20px;
+  font-size:11.5px;
+  color:#92400e;
+  display:flex;align-items:center;gap:6px;
+}
+.notice-bar.hidden{display:none}
+
+/* ─── MAIN LAYOUT ─── */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:340px;min-width:340px;
+  background:var(--bg-1);
+  border-right:1px solid var(--border-1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+.search-box{padding:14px;border-bottom:1px solid var(--border-1)}
+.search-label{font-size:10px;font-weight:700;color:var(--text-4);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px}
+.search-row{display:flex;gap:6px;margin-bottom:8px}
+.search-input{
+  flex:1;padding:8px 11px;
+  border:1px solid var(--border-2);
+  border-radius:6px;font-size:13px;
+  font-family:inherit;outline:none;
+  transition:border-color 0.15s;color:var(--text-1);
+  background:var(--bg-1);
+}
+.search-input:focus{border-color:var(--navy-2)}
+.search-input::placeholder{color:var(--text-4)}
+.btn-search{
+  padding:8px 15px;border-radius:6px;border:none;
+  background:var(--navy);color:#fff;
+  font-size:12px;font-family:inherit;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  transition:background 0.15s;
+}
+.btn-search:hover{background:var(--navy-2)}
+.btn-search:disabled{background:var(--text-4);cursor:not-allowed}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px}
+.tag{
+  padding:3px 9px;border-radius:20px;
+  border:1px solid var(--border-2);
+  font-size:11px;color:var(--text-3);
+  cursor:pointer;transition:all 0.15s;
+}
+.tag:hover{border-color:var(--navy);color:var(--navy);background:#eef2f8}
+
+/* ─── RESULT LIST ─── */
+.results-wrap{flex:1;overflow-y:auto}
+.results-count{padding:10px 14px 4px;font-size:11px;color:var(--text-4);font-weight:500}
+.case-card{
+  padding:12px 14px;cursor:pointer;
+  border-bottom:1px solid var(--border-1);
+  transition:background 0.12s;position:relative;
+}
+.case-card:hover{background:var(--bg-2)}
+.case-card.active{background:#eaf1fa;border-left:3px solid var(--navy-2)}
+.case-card.active{padding-left:11px}
+.card-court{font-size:9.5px;font-weight:700;color:var(--gold);letter-spacing:0.4px;margin-bottom:3px;text-transform:uppercase}
+.card-title{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;color:var(--text-1);line-height:1.4;margin-bottom:4px}
+.card-meta{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--text-4);margin-bottom:4px}
+.card-num{font-family:'JetBrains Mono',monospace;font-size:10px}
+.card-snippet{font-size:11px;color:var(--text-3);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ─── MAIN PANEL ─── */
+.main-panel{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+.empty-state{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px;text-align:center;
+}
+.empty-seal{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--bg-3);border:2px solid var(--border-2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin-bottom:18px;opacity:0.6;
+}
+.empty-title{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:600;color:var(--text-3);margin-bottom:8px}
+.empty-desc{font-size:13px;color:var(--text-4);line-height:1.8;max-width:320px}
+
+/* ─── DETAIL VIEW ─── */
+.detail-wrap{padding:36px 48px 60px;max-width:860px;width:100%}
+
+.detail-crumb{font-size:10.5px;color:var(--text-4);margin-bottom:14px;display:flex;align-items:center;gap:5px}
+.crumb-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--green-bg);color:var(--green);
+  border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;
+}
+.detail-title{
+  font-family:'Noto Serif KR',serif;
+  font-size:22px;font-weight:700;
+  color:var(--navy);line-height:1.4;margin-bottom:14px;
+}
+.meta-strip{
+  display:flex;flex-wrap:wrap;gap:20px;
+  padding:14px 0;border-top:1px solid var(--border-1);border-bottom:2px solid var(--border-1);
+  margin-bottom:28px;
+}
+.meta-chip{display:flex;flex-direction:column;gap:2px}
+.meta-chip-label{font-size:9.5px;font-weight:700;color:var(--text-4);letter-spacing:0.6px;text-transform:uppercase}
+.meta-chip-val{font-size:13px;font-weight:500;color:var(--text-1)}
+.meta-chip-val.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ─── CONTENT SECTIONS ─── */
+.sec{margin-bottom:24px}
+.sec-head{
+  font-size:10.5px;font-weight:700;color:var(--navy-2);
+  letter-spacing:0.7px;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border-1)}
+.sec-body{
+  font-size:13.5px;color:var(--text-2);line-height:1.85;
+  background:var(--bg-2);padding:14px 16px;border-radius:7px;
+  border-left:3px solid var(--navy-3);
+}
+.sec-body.full-text{white-space:pre-line;font-size:13px;max-height:320px;overflow-y:auto}
+
+.ref-list{display:flex;flex-direction:column;gap:5px}
+.ref-pill{
+  padding:6px 12px;background:var(--bg-2);border-radius:6px;
+  font-size:12px;color:var(--text-2);
+  border:1px solid var(--border-1);
+}
+
+/* ─── AI ANALYSIS BLOCK ─── */
+.ai-block{
+  background:var(--navy);
+  border-radius:12px;padding:24px;margin-top:32px;
+}
+.ai-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.ai-label{display:flex;align-items:center;gap:8px;color:#fff;font-size:13px;font-weight:700}
+.ai-pill{
+  background:var(--gold);color:#fff;
+  padding:2px 8px;border-radius:4px;
+  font-size:9px;font-weight:800;letter-spacing:0.5px;
+}
+.btn-analyze{
+  padding:7px 18px;border-radius:6px;border:none;
+  background:var(--gold);color:#fff;
+  font-size:12px;font-family:inherit;font-weight:600;
+  cursor:pointer;transition:background 0.15s;
+  display:flex;align-items:center;gap:6px;
+}
+.btn-analyze:hover{background:var(--gold-light)}
+.btn-analyze:disabled{background:rgba(200,145,42,0.4);cursor:not-allowed}
+
+.ai-divider{height:1px;background:rgba(255,255,255,0.1);margin:18px 0}
+
+.ai-result{display:flex;flex-direction:column;gap:10px}
+.ai-card{
+  background:rgba(255,255,255,0.07);border-radius:8px;padding:14px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.ai-card-head{
+  font-size:10px;font-weight:700;color:var(--gold-light);
+  letter-spacing:0.5px;margin-bottom:7px;
+  display:flex;align-items:center;gap:5px;
+}
+.ai-card-body{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.75;white-space:pre-line}
+
+.ai-error{color:#fca5a5;font-size:12.5px;padding:12px;background:rgba(239,68,68,0.1);border-radius:7px;border:1px solid rgba(239,68,68,0.2)}
+
+/* ─── LOADING ─── */
+.spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.list-loader{
+  display:none;padding:20px;text-align:center;
+  color:var(--text-4);font-size:12px;
+}
+.list-loader.show{display:block}
+.list-spinner{
+  display:inline-block;width:20px;height:20px;
+  border:2px solid var(--border-2);border-top-color:var(--navy);
+  border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:6px;
+}
+
+/* ─── MODAL ─── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.55);z-index:999;
+  align-items:center;justify-content:center;
+}
+.overlay.open{display:flex}
+.modal{
+  background:#fff;border-radius:12px;
+  padding:28px;width:480px;max-width:92vw;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:15px}
+.form-lbl{display:block;font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:5px}
+.form-inp{
+  width:100%;padding:9px 12px;border:1px solid var(--border-2);
+  border-radius:6px;font-size:13px;font-family:inherit;outline:none;
+  transition:border-color 0.15s;color:var(--text-1);
+}
+.form-inp:focus{border-color:var(--navy)}
+.form-hint{font-size:11px;color:var(--text-4);margin-top:4px;line-height:1.5}
+.form-hint a{color:var(--navy-2);text-decoration:none}
+.form-hint a:hover{text-decoration:underline}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border-1)}
+.btn-cancel{padding:8px 16px;border:1px solid var(--border-2);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;font-family:inherit;color:var(--text-2)}
+.btn-cancel:hover{background:var(--bg-2)}
+.btn-save{padding:8px 20px;border-radius:6px;border:none;background:var(--navy);color:#fff;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer}
+.btn-save:hover{background:var(--navy-2)}
+
+/* ─── STATUS FOOTER ─── */
+.status-foot{
+  height:26px;min-height:26px;background:var(--bg-2);
+  border-top:1px solid var(--border-1);
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;font-size:10.5px;color:var(--text-4);
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;flex-shrink:0}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-4)}
+
+/* ─── CORS NOTICE ─── */
+.cors-notice{
+  margin:10px;padding:12px;border-radius:8px;
+  background:#fffbeb;border:1px solid #f59e0b;
+  font-size:11.5px;color:#78350f;line-height:1.7;
+}
+.cors-notice strong{font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header>
+  <div class="header-left">
+    <div class="logo-seal">⚖</div>
+    <div class="logo-text">
+      <span class="logo-ko">세무판례 분석 시스템</span>
+      <span class="logo-en">Tax Case Law · AI Analysis Platform</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge-demo" id="demoTag">DEMO MODE</span>
+    <button class="btn-header" onclick="openModal()">⚙ API 설정</button>
+    <a href="https://www.law.go.kr" target="_blank" class="btn-header" style="text-decoration:none">↗ 국가법령정보시스템</a>
+  </div>
+</header>
+
+<!-- ─── NOTICE BAR ─── -->
+<div class="notice-bar" id="noticeBar">
+  ℹ API 미설정 상태입니다. <strong style="cursor:pointer;text-decoration:underline" onclick="openModal()">API 설정</strong>에서 OC ID와 Claude API Key를 입력하면 실제 판례 검색이 활성화됩니다.
+</div>
+
+<!-- ─── BODY ─── -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="search-box">
+      <div class="search-label" style="display:flex;align-items:center;justify-content:space-between;">
+        판례 검색
+        <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:#e8f4eb;color:#2d6a3f;letter-spacing:0.3px;">✦ 자연어 검색 지원</span>
+      </div>
+      <div class="search-row">
+        <input class="search-input" id="q" type="text" placeholder="예: 허위 세금계산서 받으면 어떻게 되나요?" onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn-search" id="searchBtn" onclick="doSearch()">검색</button>
+      </div>
+      <div id="nlpBadge" style="display:none;margin-bottom:8px;padding:6px 10px;background:#eef2f8;border-radius:6px;font-size:11px;color:var(--text-2);border-left:2px solid var(--navy-2)">
+        <span style="font-weight:600;color:var(--navy-2)">✦ AI 해석:</span> <span id="nlpResult"></span>
+      </div>
+      <div class="tag-row">
+        <span class="tag" onclick="quickTag('부가가치세')">부가가치세</span>
+        <span class="tag" onclick="quickTag('양도소득세')">양도소득세</span>
+        <span class="tag" onclick="quickTag('법인세')">법인세</span>
+        <span class="tag" onclick="quickTag('가산세')">가산세</span>
+        <span class="tag" onclick="quickTag('종합소득세')">종합소득세</span>
+        <span class="tag" onclick="quickTag('취득세')">취득세</span>
+        <span class="tag" onclick="quickTag('상속세')">상속세</span>
+      </div>
+    </div>
+
+    <div class="list-loader" id="listLoader">
+      <div class="list-spinner"></div>
+      <div>판례 검색 중...</div>
+    </div>
+
+    <div class="results-wrap" id="resultsList"></div>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel" id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-seal">⚖</div>
+      <div class="empty-title">판례를 선택하세요</div>
+      <div class="empty-desc">좌측 목록에서 판례를 클릭하거나<br>키워드로 검색하면 판례 내용과<br>AI 분석 결과를 확인할 수 있습니다.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── STATUS FOOTER ─── -->
+<div class="status-foot">
+  <div class="status-dot"></div>
+  <span id="statusText">시스템 정상 · 데모 모드</span>
+</div>
+
+<!-- ─── SETTINGS MODAL ─── -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-title">⚙ API 설정</div>
+
+    <div class="form-group">
+      <label class="form-lbl">국가법령정보시스템 OC ID</label>
+      <input class="form-inp" id="inp-oc" type="text" placeholder="law.go.kr 회원가입 후 발급된 아이디">
+      <div class="form-hint">
+        📌 <a href="https://www.law.go.kr/LSW/openApiInfo.do" target="_blank">법제처 오픈API 신청</a>에서 무료로 신청 가능합니다. 하루 최대 1,000건 조회.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-lbl">Anthropic Claude API Key</label>
+      <input class="form-inp" id="inp-key" type="password" placeholder="sk-ant-api03-...">
+      <div class="form-hint">
+        🔑 <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic Console</a>에서 발급 후 입력하세요.<br>
+        ⚠ 키는 브라우저 localStorage에만 저장되며 외부 전송되지 않습니다.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveSettings()">저장 및 적용</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let cfg = {oc:'taxbomnal', key:''};
+let current = null;
+
+/* ════════════════════════════════════════
+   DEMO DATA
+════════════════════════════════════════ */
+const DEMOS = [
+  {
+    seq:'d1',
+    사건명:'부가가치세 매입세액 불공제 처분취소',
+    사건번호:'2023두12345',
+    선고일자:'20231115',
+    법원명:'대법원',
+    판결유형:'판결',
+    판시사항:'사업자가 실제 거래 없이 허위로 세금계산서를 수취한 경우 매입세액 불공제 처분 및 가산세 부과의 적법성 판단',
+    판결요지:'부가가치세법 제39조에 따라 실제 공급 없이 발행된 허위 세금계산서에 기초한 매입세액은 공제할 수 없다. 수취인이 거래 상대방의 허위발행 사실을 알았거나 상당한 주의를 기울였다면 알 수 있었을 경우, 선의·무과실 항변을 인정받기 어렵다.',
+    참조조문:'부가가치세법 제39조, 제60조; 국세기본법 제47조의2',
+    판례내용:`【판시사항】
+[1] 실제 공급 없이 발행된 세금계산서(이하 "허위 세금계산서")에 기초한 매입세액 공제 가부(소극)
+[2] 허위 세금계산서 관련 가산세 부과 요건 및 선의·무과실의 입증책임
+
+【판결요지】
+[1] 부가가치세법 제39조 제1항 제1호는 사업자가 재화 또는 용역을 공급받지 아니하고 세금계산서만을 교부받은 경우 해당 매입세액을 공제하지 않는다고 규정한다. 허위 세금계산서는 동 규정에 해당하므로 매입세액 공제 대상이 아니다.
+
+[2] 허위 세금계산서를 교부받은 수취인이 선의이고 무과실임을 입증한 때에는 매입세액 공제가 가능하나, 거래의 규모·방법·상대방과의 관계 등 제반 사정에 비추어 허위 발행 여부를 충분히 확인할 수 있었음에도 이를 소홀히 한 경우 무과실로 인정받기 어렵다. 입증책임은 납세자에게 있다.
+
+【이유】
+원고는 A주식회사로부터 금속 스크랩 구매 명목으로 합계 780,000,000원 상당의 세금계산서 15매를 수취하고 매입세액 78,000,000원을 공제신고 하였다. 과세관청은 실제 물품 인도가 없었음을 확인하고 해당 매입세액 불공제 및 부당과소신고 가산세를 부과하였다.
+
+원심은 원고가 A사 대표이사와 수차례 대면 거래를 하였고 세금계산서 형식도 정상적이었다는 사정을 들어 원고의 선의를 인정하였으나, 대법원은 원고가 운반 차량 번호, 기사 성명, 실제 인도 확인서 등 기본적인 거래 확인 절차를 전혀 이행하지 아니하였음을 들어 무과실을 인정할 수 없다고 보고 원심판결을 파기환송하였다.`
+  },
+  {
+    seq:'d2',
+    사건명:'1세대 1주택 비과세 요건 관련 양도소득세 부과처분취소',
+    사건번호:'2023누45678',
+    선고일자:'20230928',
+    법원명:'서울고등법원',
+    판결유형:'판결',
+    판시사항:'재건축으로 인한 이주 기간 중 1세대 1주택 비과세를 위한 거주기간 통산 가부 및 보유기간 산정 방법',
+    판결요지:'소득세법 제89조 제1항 제3호의 거주기간은 실제 거주기간을 기준으로 하되, 재건축·재개발 사업으로 인하여 부득이 이주한 경우 이주기간도 거주기간에 산입한다. 보유기간은 종전 주택 취득일부터 신규 주택 양도일까지를 통산한다.',
+    참조조문:'소득세법 제89조; 소득세법 시행령 제154조, 제155조',
+    판례내용:`【판시사항】
+[1] 소득세법 시행령 제154조의 거주기간 요건 판단 기준
+[2] 재건축·재개발 이주기간의 거주기간 통산 여부
+[3] 보유기간 계산 방법
+
+【판결요지】
+[1] 거주기간이란 주민등록표상 등재 기간이 아니라 실제 해당 주택에 거주한 기간을 의미하며, 생활의 근거지로서 실질적 거주 여부를 기준으로 판단한다.
+
+[2] 재건축·재개발 사업 시행으로 부득이 임시 거처로 이주한 경우, 이주기간 동안 종전 주택 거주를 계속한 것으로 보아 거주기간을 통산함이 타당하다(소득세법 시행령 제154조 제5항 준용).
+
+[3] 보유기간은 원칙적으로 취득일부터 양도일까지이며, 재건축으로 취득한 신규 주택의 경우 종전 주택 취득일부터 기산한다.
+
+【이유】
+원고는 2012년 취득한 아파트가 재건축 조합에 편입되어 2019년부터 2022년까지 임시 거처에 거주하다 2022년 준공된 신축 아파트를 취득하였고, 2023년 이를 양도하였다. 과세관청은 원고의 신축 아파트 실거주 기간이 9개월에 불과하여 2년 거주 요건을 충족하지 못한다고 보아 양도소득세를 부과하였으나, 법원은 이주기간을 포함하면 10년 이상 실질적으로 해당 주거를 사용하였으므로 비과세 요건을 충족한다고 판단하였다.`
+  },
+  {
+    seq:'d3',
+    사건명:'법인 접대비 손금불산입 처분취소',
+    사건번호:'2022구합98765',
+    선고일자:'20230310',
+    법원명:'서울행정법원',
+    판결유형:'판결',
+    판시사항:'임원이 법인 명의 신용카드로 사적 경비를 지출한 경우 접대비 손금산입 가부 및 임원 상여 처분의 적법성',
+    판결요지:'법인세법 제25조의 접대비로 인정받기 위해서는 법인의 사업과 직접적인 관련이 있어야 하고, 임원의 사적 사용은 업무관련성이 없어 손금 산입이 불가능하다. 해당 금액은 임원에 대한 상여로 처분하여 근로소득으로 과세한다.',
+    참조조문:'법인세법 제19조, 제25조, 제67조; 법인세법 시행령 제43조, 제44조',
+    판례내용:`【판시사항】
+[1] 법인세법상 접대비 손금산입 요건으로서의 업무관련성 판단 기준
+[2] 임원의 사적 경비 지출액의 세무 처리 방법
+[3] 임원 상여 처분에 따른 근로소득세 원천징수 의무
+
+【판결요지】
+[1] 법인세법 제25조의 접대비는 법인이 사업을 영위하기 위하여 지출한 접대·교제·사례 등 성질의 비용으로서, 그 지출이 법인의 수익 창출과 관련한 것이어야 한다. 접대 상대방, 장소, 시간, 목적 등을 종합적으로 고려하여 업무관련성을 판단한다.
+
+[2] 법인의 임원이 법인 명의 카드를 사용하여 개인적 경비를 지출한 경우, 이는 해당 임원에 대한 급여 또는 상여에 해당하므로 손금산입 불가능하며, 법인세법 제67조에 따라 임원 상여로 처분하여야 한다.
+
+[3] 상여처분에 의해 임원 개인에게 귀속된 소득은 근로소득으로서 해당 법인이 원천징수 의무를 부담한다.
+
+【이유】
+원고 법인의 대표이사 B는 법인 명의 카드로 가족 식사비, 해외 여행비, 사적 쇼핑 등 합계 42,000,000원을 지출하였다. 과세관청은 해당 금액을 접대비 한도초과 손금불산입 처리하고, 대표이사 B에 대한 상여 처분을 하였다. 원고는 일부 지출이 거래처 접대로서 사업 관련성이 있다고 주장하였으나, 법원은 접대 상대방 및 목적이 특정되지 아니하고, 영수증에 기재된 방문 시간이 사업 시간 외임을 이유로 이를 배척하였다.`
+  },
+  {
+    seq:'d4',
+    사건명:'플랫폼 용역 제공자의 사업소득 vs 근로소득 구분 관련 종합소득세 부과처분취소',
+    사건번호:'2022두54321',
+    선고일자:'20231001',
+    법원명:'대법원',
+    판결유형:'판결',
+    판시사항:'디지털 플랫폼을 통해 용역을 제공하는 자의 소득 성격 판단 기준 및 원천징수 의무 귀속',
+    판결요지:'플랫폼 노동자의 소득이 사업소득인지 근로소득인지는 계약 형식이 아니라 실질적인 종속성 여부로 판단한다. 업무 수행 방식에 대한 구체적 지시, 전속성, 보수의 고정성 등을 종합적으로 고려하되, 복수 플랫폼 동시 이용 등 독립성이 인정되면 사업소득으로 본다.',
+    참조조문:'소득세법 제19조, 제20조; 소득세법 시행령 제25조; 근로기준법 제2조',
+    판례내용:`【판시사항】
+[1] 플랫폼을 통한 용역 제공의 경우 근로소득과 사업소득의 구분 기준
+[2] 플랫폼 사업자의 원천징수 의무 범위
+[3] 종속성 판단에서 AI 알고리즘 통제의 고려 여부
+
+【판결요지】
+[1] 소득세법 제20조의 근로소득은 고용관계 또는 이와 유사한 계약에 따라 종속적 지위에서 근로를 제공하고 지급받는 대가를 말한다. 종속성 판단 요소로는 ① 업무 내용에 대한 구체적 지시·감독 여부, ② 취업규칙 등 복무규정의 적용 여부, ③ 보수의 고정성 및 지급 주체, ④ 전속성, ⑤ 기업 조직에의 편입 여부 등이 있다.
+
+[2] 동일 플랫폼에만 전속적으로 등록하고, 플랫폼이 단가·구역·일정을 일방적으로 결정하며, 알고리즘으로 업무를 배정하는 경우 실질적 종속성이 인정될 수 있다. 반면 복수 플랫폼에 동시 등록하고 스스로 업무 시간을 결정하는 경우 사업소득으로 봄이 타당하다.
+
+[3] AI 알고리즘에 의한 배정 및 성과 모니터링은 기술적 통제 수단으로서 인적 지시·감독과 실질이 동일하므로 종속성 판단 시 고려할 수 있다.
+
+【이유】
+원고 배달 플랫폼 운영 법인은 배달 기사들이 독립 사업자라고 주장하며 사업소득으로 원천징수(3.3%)하였다. 과세관청은 배달 기사들의 실질이 근로자에 해당한다고 보아 근로소득 원천징수 부족분 및 가산세를 부과하였다. 대법원은 구역 배정, 단가 결정, 알고리즘 평가 시스템 등을 종합하면 일부 기사는 근로자에 해당한다고 보면서도, 복수 플랫폼 동시 이용이 확인된 기사는 독립 사업자로 판단하여 원심을 일부 파기환송하였다.`
+  },
+  {
+    seq:'d5',
+    사건명:'상속세 및 증여세 부과처분취소 (부동산 저가 양수)',
+    사건번호:'2023구합11111',
+    선고일자:'20231020',
+    법원명:'수원지방법원',
+    판결유형:'판결',
+    판시사항:'특수관계자 간 부동산 저가 양수 시 증여세 과세 요건으로서의 시가 산정 방법 및 30% 기준의 적용',
+    판결요지:'상속세 및 증여세법 제35조에 따른 저가 양수에 의한 증여이익 계산 시 시가는 거래일을 기준으로 매매사례가액 등을 우선 적용하며, 30% 이상 차이가 나는 경우 과세 요건이 충족된다. 감정가액이 매매사례가액보다 우선 적용되지 않는다.',
+    참조조문:'상속세 및 증여세법 제35조, 제60조, 제61조; 상속세 및 증여세법 시행령 제26조, 제49조',
+    판례내용:`【판시사항】
+[1] 상증세법 제35조 저가 양수에 의한 증여 과세 요건
+[2] 시가 산정 우선순위 - 매매사례가액 vs 감정가액
+[3] 30% 기준의 산정 방법
+
+【판결요지】
+[1] 상속세 및 증여세법 제35조는 특수관계인으로부터 시가보다 현저히 낮은 대가로 재산을 취득한 경우 그 차액을 증여로 본다. 현저히 낮은 대가란 시가와 대가의 차액이 시가의 30% 이상이거나 3억원 이상인 경우를 말한다.
+
+[2] 시가는 불특정 다수인 사이에 자유롭게 거래될 경우 통상적으로 성립될 가격으로, 인근 유사 부동산의 매매사례가액이 있는 경우 이를 시가로 본다. 감정가액은 매매사례가액이 없거나 이를 적용하기 어려운 경우에 한하여 보충적으로 적용한다.
+
+[3] 30% 기준은 (시가 - 거래가액) / 시가 × 100 으로 계산하며, 이 비율이 30% 이상인 경우 증여이익 = 시가 - 거래가액 - Min(시가×30%, 3억원)으로 계산한다.
+
+【이유】
+원고는 부친으로부터 아파트를 7억원에 양수하였으나, 과세관청은 인근 유사 아파트 매매사례가액 12억원을 기준으로 차액 5억원 중 30%(3.6억원) 공제 후 1.4억원을 증여이익으로 보아 증여세를 부과하였다. 원고는 감정가액 10억원을 시가로 보아야 한다고 주장하였으나, 법원은 거래일 전후 3개월 이내의 유효한 매매사례가액이 존재하는 이상 이를 우선 적용하여야 한다고 판단하였다.`
+  }
+];
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+(function init() {
+  try {
+    const saved = localStorage.getItem('taxSysSettings');
+    if (saved) cfg = JSON.parse(saved);
+  } catch {}
+  updateUI();
+  renderList(DEMOS, DEMOS.length + '건의 데모 판례');
+})();
+
+function updateUI() {
+  const hasOc = cfg.oc.length > 0;
+  const hasKey = cfg.key.length > 0;
+  document.getElementById('demoTag').className = (hasOc && hasKey) ? 'badge-demo hidden' : 'badge-demo';
+  document.getElementById('noticeBar').className = (hasOc && hasKey) ? 'notice-bar hidden' : 'notice-bar';
+  document.getElementById('statusText').textContent =
+    (hasOc && hasKey) ? '시스템 정상 · 실시간 검색 활성화' : '시스템 정상 · 데모 모드';
+}
+
+/* ════════════════════════════════════════
+   SEARCH
+════════════════════════════════════════ */
+function quickTag(kw) {
+  document.getElementById('q').value = kw;
+  hidNlp();
+  doSearch();
+}
+
+function hidNlp() {
+  document.getElementById('nlpBadge').style.display = 'none';
+  document.getElementById('nlpResult').textContent = '';
+}
+
+function showNlp(text) {
+  document.getElementById('nlpResult').textContent = text;
+  document.getElementById('nlpBadge').style.display = 'block';
+}
+
+/* 자연어 → 검색 키워드 변환 (Claude API) */
+async function nlpToKeyword(query) {
+  if (!cfg.key) return { keyword: query, summary: null };
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: `당신은 세무판례 검색 전문가입니다. 사용자의 자연어 질문을 분석하여 국가법령정보시스템 판례 검색에 최적화된 키워드를 추출해주세요.
+
+사용자 질문: "${query}"
+
+아래 JSON 형식으로만 응답하세요:
+{
+  "keyword": "검색할 핵심 세법 키워드 (2~4단어, 예: 부가가치세 매입세액)",
+  "summary": "질문 의도 한 줄 요약 (15자 이내)"
+}`
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) return { keyword: query, summary: null };
+    const text = (data.content?.[0]?.text || '').replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    return { keyword: parsed.keyword || query, summary: parsed.summary || null };
+  } catch {
+    return { keyword: query, summary: null };
+  }
+}
+
+async function doSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('searchBtn');
+  btn.textContent = '검색 중…';
+  btn.disabled = true;
+  hidNlp();
+  document.getElementById('listLoader').className = 'list-loader show';
+  document.getElementById('listLoader').querySelector('div:last-child').textContent = 'AI가 질문을 분석 중…';
+  document.getElementById('resultsList').innerHTML = '';
+
+  try {
+    /* 자연어 → 키워드 변환 */
+    const { keyword, summary } = await nlpToKeyword(q);
+    const isNlp = keyword !== q;
+    if (isNlp || summary) {
+      showNlp(`${keyword} 으로 검색${summary ? ' · ' + summary : ''}`);
+    }
+    document.getElementById('listLoader').querySelector('div:last-child').textContent = '판례 검색 중...';
+
+    if (cfg.oc) {
+      await searchLawAPI(keyword, q);
+    } else {
+      await new Promise(r => setTimeout(r, 400));
+      /* 데모: 변환된 키워드 + 원본 질문 모두로 필터 */
+      const terms = [keyword, q].flatMap(t => t.split(/\s+/));
+      const res = DEMOS.filter(c =>
+        terms.some(t => c.사건명.includes(t) || c.판시사항.includes(t) ||
+          c.판결요지.includes(t) || c.참조조문.includes(t) || c.판례내용.includes(t))
+      );
+      const uniq = [...new Map(res.map(c => [c.seq, c])).values()];
+      if (uniq.length) renderList(uniq, `${isNlp ? '"'+keyword+'" ' : ''}데모 결과 ${uniq.length}건`);
+      else renderEmpty(keyword);
+    }
+  } catch (e) {
+    renderError(e.message);
+  } finally {
+    btn.textContent = '검색';
+    btn.disabled = false;
+    document.getElementById('listLoader').className = 'list-loader';
+  }
+}
+
+async function searchLawAPI(q, originalQuery) {
+  const PROXY = '';  /* Cloudflare Pages Functions - 상대경로 사용 */
+
+  let res;
+  try {
+    res = await fetch(`${PROXY}/api/search?oc=${encodeURIComponent(cfg.oc)}&query=${encodeURIComponent(q)}&display=20&page=1`);
+  } catch (e) {
+    renderProxyNotice();
+    return;
+  }
+  const data = await res.json();
+  const items = data?.PrecSearch?.prec;
+  if (!items) { renderEmpty(q); return; }
+  const arr = Array.isArray(items) ? items : [items];
+  const total = data?.PrecSearch?.totalCnt || arr.length;
+  const normalized = arr.map(c => ({
+    seq: c.판례일련번호,
+    사건명: c.사건명,
+    사건번호: c.사건번호,
+    선고일자: (c.선고일자 || '').replace(/\./g, ''),
+    법원명: c.법원명 || c.데이터출처명 || '',
+    판결유형: c.판결유형 || c.사건종류명 || '',
+    판시사항: c.판시사항 || c.사건명 || '',
+    판결요지: c.판결요지 || '',
+    참조조문: c.참조조문 || '',
+    판례내용: '',
+    판례상세링크: c.판례상세링크 || ''
+  }));
+  renderList(normalized, `"${originalQuery||q}" 검색 결과 ${Number(total).toLocaleString()}건 (상위 ${arr.length}건 표시)`);
+}
+
+/* ════════════════════════════════════════
+   RENDER LIST
+════════════════════════════════════════ */
+function renderList(cases, label) {
+  const el = document.getElementById('resultsList');
+  el.innerHTML = `<div class="results-count">${label}</div>`;
+  cases.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'case-card';
+    d.dataset.seq = c.seq;
+    d.innerHTML = `
+      <div class="card-court">${c.법원명} · ${c.판결유형}</div>
+      <div class="card-title">${c.사건명}</div>
+      <div class="card-meta">
+        <span class="card-num">${c.사건번호}</span>
+        <span>·</span>
+        <span>${fmtDate(c.선고일자)}</span>
+      </div>
+      <div class="card-snippet">${c.판시사항 || c.판결요지 || ''}</div>`;
+    d.onclick = () => selectCase(c, d);
+    el.appendChild(d);
+  });
+}
+
+function renderEmpty(q) {
+  document.getElementById('resultsList').innerHTML = `
+    <div style="padding:28px 16px;text-align:center;color:var(--text-4)">
+      <div style="font-size:28px;margin-bottom:10px">🔍</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">"${q}" 결과 없음</div>
+      <div style="font-size:11px">다른 키워드로 검색해보세요</div>
+    </div>`;
+}
+
+function renderError(msg) {
+  document.getElementById('resultsList').innerHTML = `
+    <div style="margin:10px;padding:12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red)">⚠ ${msg}</div>`;
+}
+
+function renderCorsNotice(q) { renderProxyNotice(); }
+
+function renderProxyNotice() {
+  document.getElementById('resultsList').innerHTML = `
+    <div class="cors-notice">
+      <strong>⚠ API 검색 오류</strong><br><br>
+      잠시 후 다시 시도해주세요.<br>
+      문제가 지속되면 OC ID 설정을 확인해주세요.
+    </div>`;
+  renderList(DEMOS, '데모 판례 목록');
+}
+
+/* ════════════════════════════════════════
+   SELECT CASE
+════════════════════════════════════════ */
+async function selectCase(caseData, el) {
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  current = caseData;
+
+  // fetch full detail if real API
+  if (cfg.oc && !caseData.seq.startsWith('d') && !caseData.판례내용) {
+    try {
+      const url = `/api/detail?oc=${encodeURIComponent(cfg.oc)}&id=${encodeURIComponent(caseData.seq)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const d = data?.PrecService;
+      if (d) {
+        caseData.판례내용 = d.판례내용 || '';
+        caseData.판시사항 = d.판시사항 || caseData.판시사항;
+        caseData.판결요지 = d.판결요지 || caseData.판결요지;
+        caseData.참조조문 = d.참조조문 || caseData.참조조문;
+        caseData.참조판례 = d.참조판례 || '';
+      }
+    } catch {}
+  }
+
+  renderDetail(caseData);
+}
+
+/* ════════════════════════════════════════
+   RENDER DETAIL
+════════════════════════════════════════ */
+function renderDetail(c) {
+  const refs = (c.참조조문 || '').split(/[;,]/).map(s => s.trim()).filter(Boolean);
+  const refHtml = refs.length
+    ? refs.map(r => `<div class="ref-pill">${r}</div>`).join('')
+    : '<div class="ref-pill" style="color:var(--text-4)">참조조문 정보 없음</div>';
+
+  document.getElementById('mainPanel').innerHTML = `
+    <div class="detail-wrap">
+      <div class="detail-crumb">
+        <span class="crumb-tag">⚖ 세무판례</span>
+        <span style="color:var(--border-3)">›</span>
+        <span>${c.법원명}</span>
+      </div>
+
+      <div class="detail-title">${c.사건명}</div>
+
+      <div class="meta-strip">
+        <div class="meta-chip">
+          <span class="meta-chip-label">사건번호</span>
+          <span class="meta-chip-val mono">${c.사건번호}</span>
+        </div>
+        <div class="meta-chip">
+          <span class="meta-chip-label">선고일자</span>
+          <span class="meta-chip-val">${fmtDate(c.선고일자)}</span>
+        </div>
+        <div class="meta-chip">
+          <span class="meta-chip-label">법원</span>
+          <span class="meta-chip-val">${c.법원명}</span>
+        </div>
+        <div class="meta-chip">
+          <span class="meta-chip-label">판결유형</span>
+          <span class="meta-chip-val">${c.판결유형}</span>
+        </div>
+      </div>
+
+      ${c.판시사항 ? section('판시사항', c.판시사항) : ''}
+      ${c.판결요지 ? section('판결요지', c.판결요지) : ''}
+      ${c.판례내용 ? section('판례 전문', c.판례내용, true) : ''}
+
+      <div class="sec">
+        <div class="sec-head">참조 법령</div>
+        <div class="ref-list">${refHtml}</div>
+      </div>
+
+      <!-- AI BLOCK -->
+      <div class="ai-block">
+        <div class="ai-head">
+          <div class="ai-label">
+            <span class="ai-pill">AI</span>
+            Claude 판례 분석 · 실무 해설
+          </div>
+          <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">✦ 분석 시작</button>
+        </div>
+        <div id="aiResult"></div>
+      </div>
+
+      <div style="height:48px"></div>
+    </div>`;
+}
+
+function section(title, content, full) {
+  return `<div class="sec">
+    <div class="sec-head">${title}</div>
+    <div class="sec-body${full?' full-text':''}">${content}</div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════
+   AI ANALYSIS
+════════════════════════════════════════ */
+async function analyze() {
+  if (!cfg.key) { alert('Claude API 키를 먼저 설정해주세요.'); openModal(); return; }
+  const btn = document.getElementById('analyzeBtn');
+  const res = document.getElementById('aiResult');
+  btn.innerHTML = '<span class="spinner"></span> 분석 중…';
+  btn.disabled = true;
+  res.innerHTML = '';
+
+  const c = current;
+  const caseText = [
+    `사건명: ${c.사건명}`,
+    `사건번호: ${c.사건번호}`,
+    `선고일자: ${fmtDate(c.선고일자)}`,
+    `법원명: ${c.법원명}`,
+    `\n판시사항:\n${c.판시사항 || '없음'}`,
+    `\n판결요지:\n${c.판결요지 || '없음'}`,
+    `\n참조조문:\n${c.참조조문 || '없음'}`,
+    `\n판례 전문:\n${c.판례내용 || '없음'}`
+  ].join('\n');
+
+  const prompt = `당신은 한국 세법 전문가입니다. 아래 세무판례를 분석하여 실무자 관점에서 상세하게 해설해주세요.
+
+[판례 정보]
+${caseText}
+
+아래 JSON 형식으로만 응답하세요 (다른 텍스트, 마크다운 코드블록 없이 JSON만):
+{
+  "핵심쟁점": "이 사건의 세무 핵심 쟁점 2~3문장",
+  "법원판단": "법원의 판단 요지와 근거를 3~4문장으로",
+  "적용법령": "인용된 세법 조항의 내용과 해석 포인트",
+  "납세자영향": "납세자 입장에서의 실질적 영향과 리스크",
+  "실무포인트": "세무 실무에서 반드시 체크해야 할 포인트 3가지 (번호 매겨서)"
+}`;
+
+  try {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await apiRes.json();
+    if (data.error) throw new Error(data.error.message);
+
+    let txt = (data.content?.[0]?.text || '').replace(/```json|```/g, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(txt); }
+    catch { parsed = { 핵심쟁점: txt }; }
+
+    const divider = '<div class="ai-divider"></div>';
+    res.innerHTML = divider + [
+      aiCard('🎯', '핵심 쟁점', parsed.핵심쟁점),
+      aiCard('⚖', '법원 판단', parsed.법원판단),
+      aiCard('📖', '적용 법령 해석', parsed.적용법령),
+      aiCard('👤', '납세자 영향', parsed.납세자영향),
+      aiCard('✅', '실무 포인트', parsed.실무포인트)
+    ].filter(Boolean).join('');
+
+    btn.innerHTML = '✦ 재분석';
+    btn.disabled = false;
+
+  } catch (err) {
+    res.innerHTML = `<div class="ai-divider"></div><div class="ai-error">⚠ 오류: ${err.message}</div>`;
+    btn.innerHTML = '✦ 다시 시도';
+    btn.disabled = false;
+  }
+}
+
+function aiCard(icon, title, body) {
+  if (!body) return '';
+  return `<div class="ai-card">
+    <div class="ai-card-head">${icon} ${title}</div>
+    <div class="ai-card-body">${body}</div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════
+   SETTINGS MODAL
+════════════════════════════════════════ */
+function openModal() {
+  document.getElementById('inp-oc').value = cfg.oc;
+  document.getElementById('inp-key').value = cfg.key;
+  document.getElementById('settingsOverlay').className = 'overlay open';
+}
+function closeModal() {
+  document.getElementById('settingsOverlay').className = 'overlay';
+}
+function saveSettings() {
+  cfg.oc = document.getElementById('inp-oc').value.trim();
+  cfg.key = document.getElementById('inp-key').value.trim();
+  localStorage.setItem('taxSysSettings', JSON.stringify(cfg));
+  updateUI();
+  closeModal();
+}
+document.getElementById('settingsOverlay').addEventListener('click', e => {
+  if (e.target.id === 'settingsOverlay') closeModal();
+});
+
+/* ════════════════════════════════════════
+   UTIL
+════════════════════════════════════════ */
+function fmtDate(s) {
+  if (!s) return '-';
+  s = String(s).replace(/\./g, '');
+  if (s.length < 8) return s || '-';
+  return `${s.slice(0,4)}.${s.slice(4,6)}.${s.slice(6,8)}`;
+}
+</script>
+</body>
+</html>
