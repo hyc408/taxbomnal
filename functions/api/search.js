@@ -1,3 +1,7 @@
+export const config = {
+  regions: ['KOR']  // 한국 리전 지정
+};
+
 export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
@@ -6,12 +10,8 @@ export async function onRequest(context) {
   const display = url.searchParams.get('display') || '20';
   const page    = url.searchParams.get('page')    || '1';
 
-  /* CORS preflight */
   if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders(),
-    });
+    return new Response(null, { status: 204, headers: corsHeaders() });
   }
 
   if (!oc || !query) {
@@ -26,7 +26,12 @@ export async function onRequest(context) {
     `&display=${display}&page=${page}&sort=ddes`;
 
   try {
-    const res  = await fetch(target);
+    const res  = await fetch(target, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Referer': 'https://www.law.go.kr'
+      }
+    });
     const text = await res.text();
     return new Response(text, {
       status: 200,
