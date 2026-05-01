@@ -31,7 +31,7 @@
   --red-bg:#fee2e2;
 }
 
-body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg-3);color:var(--text-1);height:100vh;display:flex;flex-direction:column;font-size:14px;line-height:1.6}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg-3);color:var(--text-1);min-height:100vh;height:100%;display:flex;flex-direction:column;font-size:14px;line-height:1.6}
 
 /* ─── HEADER ─── */
 header{
@@ -303,6 +303,7 @@ header{
   border-top:1px solid var(--border-1);
   display:flex;align-items:center;gap:8px;
   padding:0 16px;font-size:10.5px;color:var(--text-4);
+  position:sticky;bottom:0;z-index:10;
 }
 .status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;flex-shrink:0}
 
@@ -319,6 +320,67 @@ header{
   font-size:11.5px;color:#78350f;line-height:1.7;
 }
 .cors-notice strong{font-weight:700}
+
+/* ─── 모바일 뒤로가기 버튼 ─── */
+.btn-back{
+  display:none;
+  align-items:center;gap:6px;
+  padding:10px 14px;
+  background:var(--bg-2);border-bottom:1px solid var(--border-1);
+  font-size:13px;font-weight:600;color:var(--navy);
+  cursor:pointer;
+}
+.btn-back:hover{background:var(--bg-3)}
+
+/* ─── 모바일 반응형 ─── */
+@media (max-width: 768px) {
+  /* 헤더 */
+  header{padding:0 12px;height:48px;min-height:48px}
+  .logo-ko{font-size:12px}
+  .logo-en{display:none}
+  .badge-demo{display:none!important}
+  .btn-header{padding:5px 10px;font-size:11px}
+
+  /* 노티스 */
+  .notice-bar{font-size:10.5px;padding:6px 12px}
+
+  /* 앱 바디 - 세로 배치 */
+  .app-body{flex-direction:column;overflow:visible;flex:1}
+
+  /* 사이드바 - 전체 너비 */
+  .sidebar{
+    width:100%;min-width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border-1);
+    max-height:none;overflow:visible;
+  }
+
+  /* 패널 숨김/표시 제어 */
+  .sidebar.mobile-hidden{display:none}
+  .main-panel.mobile-hidden{display:none}
+  .btn-back{display:flex}
+
+  /* 검색박스 */
+  .search-box{padding:10px}
+  .search-input{font-size:13px;padding:9px 10px}
+  .search-input::placeholder{font-size:11px}
+
+  /* 메인패널 */
+  .main-panel{min-height:100vh}
+
+  /* 상세 뷰 */
+  .detail-wrap{padding:16px 16px 48px}
+  .detail-title{font-size:17px}
+  .meta-strip{gap:12px;padding:10px 0}
+  .meta-chip-val{font-size:12px}
+
+  /* AI 블록 */
+  .ai-block{padding:16px;border-radius:8px}
+  .ai-card-body{font-size:12px}
+
+  /* 상태바 */
+  .status-foot{display:none}
+}
 </style>
 </head>
 <body>
@@ -381,7 +443,8 @@ header{
   </div>
 
   <!-- MAIN PANEL -->
-  <div class="main-panel" id="mainPanel">
+  <div class="main-panel mobile-hidden" id="mainPanel">
+    <div class="btn-back" id="backBtn" onclick="goBack()">← 판례 목록으로</div>
     <div class="empty-state" id="emptyState">
       <div class="empty-seal">⚖</div>
       <div class="empty-title">판례를 선택하세요</div>
@@ -792,11 +855,27 @@ async function selectCase(caseData, el) {
   }
 
   renderDetail(caseData);
+  showMobileDetail();
 }
 
 /* ════════════════════════════════════════
    RENDER DETAIL
 ════════════════════════════════════════ */
+function goBack() {
+  document.getElementById('mainPanel').classList.add('mobile-hidden');
+  document.getElementById('mainPanel').classList.remove('mobile-shown');
+  document.querySelector('.sidebar').classList.remove('mobile-hidden');
+  document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+  current = null;
+}
+
+function showMobileDetail() {
+  if (window.innerWidth <= 768) {
+    document.querySelector('.sidebar').classList.add('mobile-hidden');
+    document.getElementById('mainPanel').classList.remove('mobile-hidden');
+  }
+}
+
 function renderDetail(c) {
   const refs = (c.참조조문 || '').split(/[;,]/).map(s => s.trim()).filter(Boolean);
   const refHtml = refs.length
