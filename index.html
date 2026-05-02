@@ -749,8 +749,8 @@ async function doSearch() {
 }
 
 async function searchLawAPI(q, originalQuery) {
-  const PROXY = 'https://taxbomnal-proxy.vercel.app';  /* Vercel 프록시 서버 */
-
+  /* AWS 서울 서버 프록시 호출 */
+  const PROXY = 'http://54.116.132.20:3003';
   let res;
   try {
     res = await fetch(`${PROXY}/api/search?oc=${encodeURIComponent(cfg.oc)}&query=${encodeURIComponent(q)}&display=20&page=1`);
@@ -840,7 +840,7 @@ async function selectCase(caseData, el) {
   // fetch full detail if real API
   if (cfg.oc && !caseData.seq.startsWith('d') && !caseData.판례내용) {
     try {
-      const url = `/api/detail?oc=${encodeURIComponent(cfg.oc)}&id=${encodeURIComponent(caseData.seq)}`;
+      const url = `http://54.116.132.20:3003/api/detail?oc=${encodeURIComponent(cfg.oc)}&id=${encodeURIComponent(caseData.seq)}`;
       const res = await fetch(url);
       const data = await res.json();
       const d = data?.PrecService;
