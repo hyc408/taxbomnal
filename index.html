@@ -750,7 +750,7 @@ async function doSearch() {
 
 async function searchLawAPI(q, originalQuery) {
   /* AWS 서울 서버 프록시 호출 */
-  const PROXY = 'http://54.116.132.20:3003';
+  const PROXY = 'https://54-116-132-20.sslip.io';
   let res;
   try {
     res = await fetch(`${PROXY}/api/search?oc=${encodeURIComponent(cfg.oc)}&query=${encodeURIComponent(q)}&display=20&page=1`);
