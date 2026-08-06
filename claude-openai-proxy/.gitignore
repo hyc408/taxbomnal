@@ -1,0 +1,13 @@
+# 환경설정 (실제 값은 커밋하지 않음)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# 로그
+*.log

@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# claude-openai-proxy docker-compose
+#
+# OAuth 재사용 핵심:
+#   호스트에서 미리 `claude login` 을 완료한 뒤, 그 인증 디렉터리(~/.claude)를
+#   컨테이너에 마운트한다. 그러면 컨테이너 안에서 재로그인 없이 동일한 OAuth
+#   세션을 재사용한다.
+#
+# 사전 준비(호스트):
+#   1) npm install -g @anthropic-ai/claude-code
+#   2) claude login   (Claude Pro/Max 계정으로 로그인)
+# ---------------------------------------------------------------------------
+services:
+  proxy:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # 호스트의 OAuth 인증 디렉터리를 컨테이너로 마운트(읽기 전용 권장)
+      - ${HOME}/.claude:/root/.claude:ro
+    restart: unless-stopped
